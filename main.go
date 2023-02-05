@@ -12,15 +12,15 @@ type position struct {
 }
 
 func (pos *position) SetXY(x int, y int) {
-	if x > (dim - 1) {
-		pos.x = dim - 1
+	if x > (dimY - 1) {
+		pos.x = dimY - 1
 	} else if x < 0 {
 		pos.x = 0
 	} else {
 		pos.x = x
 	}
-	if y > (dim - 1) {
-		pos.y = dim - 1
+	if y > (dimX - 1) {
+		pos.y = dimX - 1
 	} else if y < 0 {
 		pos.y = 0
 	} else {
@@ -36,7 +36,8 @@ type life struct {
 	moved bool
 }
 
-const dim = 8
+const dimX = 50
+const dimY = 10
 
 func eliminatedAnnounce(loser life, winner life) {
 	fmt.Println(loser.ziga + " is eliminated by " + winner.ziga)
@@ -56,9 +57,9 @@ func battle(a life, b life) life {
 	}
 }
 
-func printField(field [dim][dim]life) {
-	for i := 0; i < dim; i++ {
-		for j := 0; j < dim; j++ {
+func printField(field [dimY][dimX]life) {
+	for i := 0; i < dimY; i++ {
+		for j := 0; j < dimX; j++ {
 			if field[i][j].ziga != "" {
 				fmt.Print(field[i][j].ziga)
 			} else {
@@ -69,9 +70,9 @@ func printField(field [dim][dim]life) {
 	}
 }
 
-func cleanFlag(field [dim][dim]life) [dim][dim]life {
-	for i := 0; i < dim; i++ {
-		for j := 0; j < dim; j++ {
+func cleanFlag(field [dimY][dimX]life) [dimY][dimX]life {
+	for i := 0; i < dimY; i++ {
+		for j := 0; j < dimX; j++ {
 			if field[i][j].ziga != "" && field[i][j].moved {
 				field[i][j].moved = false
 			}
@@ -80,20 +81,11 @@ func cleanFlag(field [dim][dim]life) [dim][dim]life {
 	return field
 }
 
-func cleanTerminal() {
-	for i := 0; i < dim; i++ {
-		fmt.Print(" ")
-	}
-	fmt.Print("\n")
-
-}
-
-func move(field [dim][dim]life) [dim][dim]life {
+func move(field [dimY][dimX]life) [dimY][dimX]life {
 	//Move and Battle
-	for i := 0; i < dim; i++ {
-		for j := 0; j < dim; j++ {
+	for i := 0; i < dimY; i++ {
+		for j := 0; j < dimX; j++ {
 			if field[i][j].ziga != "" && !field[i][j].moved {
-				rand.Seed(time.Now().UnixNano())
 				x := rand.Intn(3) - 1
 				y := rand.Intn(3) - 1
 				tmp := field[i][j]
@@ -102,7 +94,7 @@ func move(field [dim][dim]life) [dim][dim]life {
 				nextPos.SetXY(x+i, y+j)
 				tmp.moved = true
 				field[nextPos.x][nextPos.y] = tmp
-
+				//fmt.Println(x, y)
 			}
 		}
 	}
@@ -110,43 +102,42 @@ func move(field [dim][dim]life) [dim][dim]life {
 }
 
 func main() {
-	var field [dim][dim]life
+	var field [dimY][dimX]life
 
 	for {
 
 		field = move(field)
 		field = cleanFlag(field)
 
-		printField(field)
-		cleanTerminal()
+		fmt.Print("\n")
 
 		//Born new Alphabet
 		field = born(field)
 
-		for i := 0; i < dim; i++ {
+		for i := 0; i < dimY; i++ {
 			fmt.Print(" ")
 		}
 		fmt.Print("\n")
 
 		printField(field)
-		cleanTerminal()
+		fmt.Print("\n")
 
-		time.Sleep(time.Millisecond * 1000)
+		time.Sleep(time.Millisecond * 100)
 	}
 
 }
 
-func born(field [dim][dim]life) [dim][dim]life {
+func born(field [dimY][dimX]life) [dimY][dimX]life {
 
-	rand.Seed(time.Now().UnixNano())
-	x := rand.Intn(dim)
-	y := rand.Intn(dim)
+	x := rand.Intn(dimY)
+	y := rand.Intn(dimX)
 	p := rand.Intn(10)
 
 	var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+	//var letterRunes = []rune("@")
 	str := string(letterRunes[rand.Intn(len(letterRunes))])
 	me := life{position{x, y}, p, str, false}
-
+	fmt.Println(me.ziga + " was borned.")
 	field[me.pos.x][me.pos.y] = battle(field[me.pos.x][me.pos.y], me)
 	return field
 }
