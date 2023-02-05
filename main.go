@@ -43,19 +43,17 @@ func eliminatedAnnounce(loser life, winner life) {
 }
 
 func battle(a life, b life) life {
-	winner := life{}
 	if a.ziga != "" {
 		if a.power <= b.power {
 			eliminatedAnnounce(a, b)
-			winner = b
+			return b
 		} else {
 			eliminatedAnnounce(b, a)
-			winner = a
+			return a
 		}
 	} else {
-		winner = b
+		return b
 	}
-	return winner
 }
 
 func printField(field [dim][dim]life) {
@@ -71,6 +69,17 @@ func printField(field [dim][dim]life) {
 	}
 }
 
+func cleanFlag(field [dim][dim]life) [dim][dim]life {
+	for i := 0; i < dim; i++ {
+		for j := 0; j < dim; j++ {
+			if field[i][j].ziga != "" && field[i][j].moved {
+				field[i][j].moved = false
+			}
+		}
+	}
+	return field
+}
+
 func cleanTerminal() {
 	for i := 0; i < dim; i++ {
 		fmt.Print(" ")
@@ -79,37 +88,34 @@ func cleanTerminal() {
 
 }
 
+func move(field [dim][dim]life) [dim][dim]life {
+	//Move and Battle
+	for i := 0; i < dim; i++ {
+		for j := 0; j < dim; j++ {
+			if field[i][j].ziga != "" && !field[i][j].moved {
+				rand.Seed(time.Now().UnixNano())
+				x := rand.Intn(3) - 1
+				y := rand.Intn(3) - 1
+				tmp := field[i][j]
+				field[i][j] = life{}
+				var nextPos position
+				nextPos.SetXY(x+i, y+j)
+				tmp.moved = true
+				field[nextPos.x][nextPos.y] = tmp
+
+			}
+		}
+	}
+	return field
+}
+
 func main() {
 	var field [dim][dim]life
 
 	for {
 
-		//Move and Battle
-		for i := 0; i < dim; i++ {
-
-			for j := 0; j < dim; j++ {
-				if field[i][j].ziga != "" && !field[i][j].moved {
-					rand.Seed(time.Now().UnixNano())
-					x := rand.Intn(3) - 1
-					y := rand.Intn(3) - 1
-					tmp := field[i][j]
-					field[i][j] = life{}
-					var nextPos position
-					nextPos.SetXY(x+i, y+j)
-					tmp.moved = true
-					field[nextPos.x][nextPos.y] = tmp
-
-				}
-			}
-		}
-
-		for i := 0; i < dim; i++ {
-			for j := 0; j < dim; j++ {
-				if field[i][j].ziga != "" && field[i][j].moved {
-					field[i][j].moved = false
-				}
-			}
-		}
+		field = move(field)
+		field = cleanFlag(field)
 
 		printField(field)
 		cleanTerminal()
